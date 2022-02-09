@@ -1,2 +1,2 @@
 # algas
-ALignment GAp Statistics
+Alignment gap statistics (coming soon).
