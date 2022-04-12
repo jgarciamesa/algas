@@ -61,6 +61,44 @@ int main(int argc, char* const argv[]) {
         // write counts to stdout
         return algas::utils::write_histogram(counts);
     }
+    // phase
+    if(strcmp(argv[1], "phase") == 0) {
+        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+            std::cout << "Usage:    algas phase fasta(s)" << std::endl;
+            return EXIT_SUCCESS;
+        }
+
+        // phase counts vector
+        std::vector<float> phase = {0, 0, 0};
+
+        // for each fasta file in input
+        for(int file = 2; file < argc; ++file) {
+            // read fasta file
+            algas::data_t data = algas::fasta::read_fasta(argv[file]);
+
+            // find gaps on each sequence
+            for(const std::string& seq : data.seqs) {
+                size_t pos{seq.find(GAP, 0)};
+                while(pos != std::string::npos) {
+                    // add current gap
+                    phase[pos % 3]++;
+                    do {
+                        pos++;
+                    } while((pos + 1) < seq.length() && seq.at(pos + 1) == GAP);
+                    // look for next gap
+                    pos = seq.find(GAP, pos + 1);
+                }
+            }
+        }
+
+        // write counts to stdout
+        float total = std::accumulate(phase.begin(), phase.end(), 0);
+        std::cout << "phase 0:" << phase[0] / total << '\n';
+        std::cout << "phase 1:" << phase[1] / total << '\n';
+        std::cout << "phase 2:" << phase[2] / total << '\n';
+
+        return EXIT_SUCCESS;
+    }
 
     std::cout << "Command not supported." << std::endl;
     return EXIT_FAILURE;
