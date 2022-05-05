@@ -46,7 +46,7 @@ int sequence(int argc, char* argv[]) {
                     seq = seq.substr(0, seq.length() - (seq.length() % 3));
                 }
 
-                for(size_t pos = 0; pos < seq.length(); ++pos) {
+                for(size_t pos = 0; pos < seq.length(); pos += 3) {
                     std::string codon = seq.substr(pos, 3);
                     if(std::find(stop_codons.begin(), stop_codons.end(),
                                  codon) != std::end(stop_codons)) {
