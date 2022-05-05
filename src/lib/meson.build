@@ -1,13 +1,15 @@
 # Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmai.com>
 
-libalgas_sources = files([
+libsalsa_sources = files([
 	'fasta.cpp',
-	'utils.cpp'
+	'gap.cpp',
+	'utils.cpp',
+	'sequence.cpp'
 ])
 
-libalgas_deps = [boost_dep]
+libsalsa_deps = [boost_dep]
 
-libalgas = static_library('libalgas', [libalgas_sources],
+libsalsa = static_library('libsalsa', [libsalsa_sources],
 	include_directories : inc,
-	dependencies : libalgas_deps,
+	dependencies : libsalsa_deps,
 )

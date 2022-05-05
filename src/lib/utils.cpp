@@ -1,9 +1,9 @@
 /* Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com> */
 
-#include <algas/utils.hpp>
 #include <filesystem>
+#include <salsa/utils.hpp>
 
-namespace algas::utils {
+namespace salsa::utils {
 
 file_type_t extract_file_type(std::string path) {
     constexpr auto npos = std::string::npos;
@@ -39,4 +39,4 @@ int write_histogram(std::vector<size_t>& counts) {
     }
     return EXIT_SUCCESS;
 }
-}  // namespace algas::utils
+}  // namespace salsa::utils

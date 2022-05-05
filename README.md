@@ -1,2 +1,2 @@
-# algas
-Alignment gap statistics (coming soon).
+# SALSa
+Sequence and ALignment Statistics (coming soon).

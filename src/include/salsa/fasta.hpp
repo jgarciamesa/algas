@@ -10,11 +10,11 @@
 #include "structs.hpp"
 #include "utils.hpp"
 
-namespace algas::fasta {
+namespace salsa::fasta {
 
-algas::data_t read_fasta(const std::string& f_path);
-bool write_fasta(algas::data_t& fasta);
+salsa::data_t read_fasta(const std::string& f_path);
+bool write_fasta(salsa::data_t& fasta);
 
-}  // namespace algas::fasta
+}  // namespace salsa::fasta
 
 #endif

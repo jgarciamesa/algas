@@ -1,16 +1,16 @@
 /* Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com> */
 
-#include <algas/fasta.hpp>
+#include <salsa/fasta.hpp>
 
-namespace algas::fasta {
+namespace salsa::fasta {
 
-algas::data_t read_fasta(const std::string& f_path) {
-    algas::data_t fasta(f_path);
+salsa::data_t read_fasta(const std::string& f_path) {
+    salsa::data_t fasta(f_path);
 
     // set input pointer and file type
     std::istream* pin(nullptr);
     std::ifstream infile;  // input file
-    algas::file_type_t in_type = algas::utils::extract_file_type(f_path);
+    salsa::file_type_t in_type = salsa::utils::extract_file_type(f_path);
     if(in_type.path.empty() || in_type.path == "-") {
         pin = &std::cin;  // set to stdin
         in_type.path = "-";
@@ -21,7 +21,7 @@ algas::data_t read_fasta(const std::string& f_path) {
                                         " failed.");
         }
         pin = &infile;  // set to file
-        in_type = algas::utils::extract_file_type(f_path);
+        in_type = salsa::utils::extract_file_type(f_path);
     }
     std::istream& in = *pin;
 
@@ -57,4 +57,4 @@ algas::data_t read_fasta(const std::string& f_path) {
     return fasta;
 }
 
-}  // namespace algas::fasta
+}  // namespace salsa::fasta

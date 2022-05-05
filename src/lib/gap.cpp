@@ -1,23 +1,24 @@
 /* Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com> */
 
-#include <algas/fasta.hpp>
-#include <algas/utils.hpp>
+#include <salsa/gap.hpp>
 
-#define GAP '-'
+namespace salsa {
 
-int main(int argc, char* const argv[]) {
+int gap(int argc, char* argv[]) {
     if((argc < 2) || (strcmp(argv[1], "help") == 0)) {
-        std::cout << "Usage:    algas command [options]" << std::endl
+        std::cout << "Usage salsa gap command [options]" << std::endl
                   << std::endl;
-        std::cout << "Commands available:   help" << std::endl;
+        std::cout << "Commands available:   help - display this message"
+                  << std::endl;
         std::cout << "                      histogram" << std::endl;
+        std::cout << "                      phase" << std::endl;
         return EXIT_SUCCESS;
     }
 
     // histogram
     if(strcmp(argv[1], "histogram") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    algas histogram fasta(s)" << std::endl;
+            std::cout << "Usage:    salsa gap histogram fasta(s)" << std::endl;
             return EXIT_SUCCESS;
         }
 
@@ -31,7 +32,7 @@ int main(int argc, char* const argv[]) {
         // for each fasta file in input
         for(int file = 2; file < argc; ++file) {
             // read fasta file
-            algas::data_t data = algas::fasta::read_fasta(argv[file]);
+            salsa::data_t data = salsa::fasta::read_fasta(argv[file]);
 
             // if capacity of vector is smaller than size of aln, resize
             if(counts.capacity() < data.len()) {
@@ -59,12 +60,12 @@ int main(int argc, char* const argv[]) {
         }
 
         // write counts to stdout
-        return algas::utils::write_histogram(counts);
+        return salsa::utils::write_histogram(counts);
     }
     // phase
     if(strcmp(argv[1], "phase") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    algas phase fasta(s)" << std::endl;
+            std::cout << "Usage:    salsa gap phase fasta(s)" << std::endl;
             return EXIT_SUCCESS;
         }
 
@@ -74,7 +75,7 @@ int main(int argc, char* const argv[]) {
         // for each fasta file in input
         for(int file = 2; file < argc; ++file) {
             // read fasta file
-            algas::data_t data = algas::fasta::read_fasta(argv[file]);
+            salsa::data_t data = salsa::fasta::read_fasta(argv[file]);
 
             // find gaps on each sequence
             for(const std::string& seq : data.seqs) {
@@ -100,6 +101,7 @@ int main(int argc, char* const argv[]) {
         return EXIT_SUCCESS;
     }
 
-    std::cout << "Command not supported." << std::endl;
+    std::cout << "Command " << argv[1] << " not supported." << std::endl;
     return EXIT_FAILURE;
 }
+}  // namespace salsa

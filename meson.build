@@ -2,7 +2,7 @@
 
 # 	ALignment GAp Statistic
 # Init project
-project('algas', 'cpp',
+project('salsa', 'cpp',
 	version : '0.1.9000',
 	license : 'MIT',
 	meson_version : '>=0.58.0',
