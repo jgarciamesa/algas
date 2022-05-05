@@ -60,7 +60,7 @@ int sequence(int argc, char* argv[]) {
     }
 
     if(strcmp(argv[1], "frameshift") == 0) {
-        if((argc < 3) || (strcmp(arv[2], "help") == 0)) {
+        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    salsa sequence frameshift fasta(s)"
                       << std::endl;
             return EXIT_SUCCESS;
