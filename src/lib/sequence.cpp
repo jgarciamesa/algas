@@ -59,6 +59,28 @@ int sequence(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
+    if(strcmp(argv[1], "frameshift") == 0) {
+        if((argc < 3) || (strcmp(arv[2], "help") == 0)) {
+            std::cout << "Usage:    salsa sequence frameshift fasta(s)"
+                      << std::endl;
+            return EXIT_SUCCESS;
+        }
+
+        size_t total_count{0};
+        // for each fasta file in input
+        for(int file = 2; file < argc; file++) {
+            salsa::data_t data = salsa::fasta::read_fasta(argv[file]);
+
+            for(const std::string& seq : data.seqs) {
+                if(seq.length() % 3 != 0) {
+                    total_count++;
+                }
+            }
+        }
+        std::cout << "total_count" << ',' << total_count << std::endl;
+        return EXIT_SUCCESS;
+    }
+
     std::cout << "Command " << argv[1] << " not supported." << std::endl;
     return EXIT_FAILURE;
 }
