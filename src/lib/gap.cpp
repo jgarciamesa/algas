@@ -10,15 +10,23 @@ int gap(int argc, char* argv[]) {
                   << std::endl;
         std::cout << "Commands available:   help - display this message"
                   << std::endl;
+        std::cout << "                      frameshifts" << std::endl;
         std::cout << "                      histogram" << std::endl;
         std::cout << "                      phase" << std::endl;
         return EXIT_SUCCESS;
     }
 
-    // histogram
-    if(strcmp(argv[1], "histogram") == 0) {
+    // histogram & frameshift
+    if(strcmp(argv[1], "histogram") == 0 ||
+       strcmp(argv[1], "frameshift") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    salsa gap histogram fasta(s)" << std::endl;
+            if(strcmp(argv[1], "histogram") == 0) {
+                std::cout << "Usage:    salsa gap histogram fasta(s)"
+                          << std::endl;
+            } else {  // frameshift
+                std::cout << "Usage:    salsa gap frameshift fasta(s)"
+                          << std::endl;
+            }
             return EXIT_SUCCESS;
         }
 
@@ -43,15 +51,15 @@ int gap(int argc, char* argv[]) {
             for(const std::string& seq : data.seqs) {
                 size_t pos{seq.find(GAP, 0)};
                 while(pos != std::string::npos) {
-                    size_t count{1};
+                    size_t count{0};
                     // add current gap count until a nucleotide is found
-                    do {
-                        pos++;
-                        count++;
+                    while(seq.at(pos) == GAP) {
+                        ++pos;
+                        ++count;
                         if(pos + 1 >= seq.size()) {
                             break;
                         }
-                    } while(seq.at(pos + 1) == GAP);
+                    }
                     counts[count]++;
                     // look for next gap
                     pos = seq.find(GAP, pos + 1);
@@ -59,8 +67,26 @@ int gap(int argc, char* argv[]) {
             }
         }
 
-        // write counts to stdout
-        return salsa::utils::write_histogram(counts);
+        if(strcmp(argv[1], "histogram") == 0) {
+            // write counts to stdout
+            return salsa::utils::write_histogram(counts);
+        } else {  // frameshift
+            size_t total_frameshifts{0};
+            size_t total_gaps{0};
+            for(size_t pos = 0; pos < counts.size(); ++pos) {
+                if(counts[pos] > 0) {
+                    total_gaps += counts[pos];
+                    if(pos % 3 != 0) {
+                        total_frameshifts += counts[pos];
+                    }
+                }
+            }
+
+            std::cout << "number of gaps with length not multiple of 3: "
+                      << total_frameshifts << " (" << total_frameshifts << "/"
+                      << total_gaps << ")" << std::endl;
+            return EXIT_SUCCESS;
+        }
     }
     // phase
     if(strcmp(argv[1], "phase") == 0) {
