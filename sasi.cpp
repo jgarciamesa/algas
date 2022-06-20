@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[]) {
     if((argc < 2) || (strcmp(argv[1], "help") == 0)) {
-        std::cout << "Usage:    salsa command [options]" << std::endl
+        std::cout << "Usage:    sasi command [options]" << std::endl
                   << std::endl;
         std::cout << "Commands available:   help" << std::endl;
         std::cout << "                      gap" << std::endl;
