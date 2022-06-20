@@ -7,9 +7,10 @@ libsalsa_sources = files([
 	'sequence.cpp'
 ])
 
-libsalsa_deps = [boost_dep]
+libsalsa_deps = [boost_dep, cli_dep, doctest_dep]
 
 libsalsa = static_library('libsalsa', [libsalsa_sources],
 	include_directories : inc,
 	dependencies : libsalsa_deps,
+	cpp_args : ['-DDOCTEST_CONFIG_DISABLE']
 )
