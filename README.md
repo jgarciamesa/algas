@@ -1,2 +1,2 @@
-# SALSa
-Sequence and ALignment Statistics (coming soon).
+# SASi
+Sequence Alignment Statistics (coming soon).
