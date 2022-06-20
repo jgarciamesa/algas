@@ -2,13 +2,13 @@
 
 #include <doctest/doctest.h>
 
-#include <salsa/gap.hpp>
+#include <sasi/gap.hpp>
 
-namespace salsa {
+namespace sasi {
 
 int gap(int argc, char* argv[]) {
     if((argc < 2) || (strcmp(argv[1], "help") == 0)) {
-        std::cout << "Usage salsa gap command [options]" << std::endl
+        std::cout << "Usage sasi gap command [options]" << std::endl
                   << std::endl;
         std::cout << "Commands available:   help - display this message"
                   << std::endl;
@@ -20,17 +20,17 @@ int gap(int argc, char* argv[]) {
 
     if(strcmp(argv[1], "histogram") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    salsa gap histogram fasta(s)" << std::endl;
+            std::cout << "Usage:    sasi gap histogram fasta(s)" << std::endl;
         }
 
         std::vector<size_t> gap_counts = histogram(argc - 2, argv + 2);
 
         // write counts to stdout
-        return salsa::utils::write_histogram(gap_counts);
+        return sasi::utils::write_histogram(gap_counts);
 
     } else if(strcmp(argv[1], "frameshift") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    salsa gap frameshift fasta(s)" << std::endl;
+            std::cout << "Usage:    sasi gap frameshift fasta(s)" << std::endl;
         }
 
         std::pair<size_t, size_t> frameshifts =
@@ -44,7 +44,7 @@ int gap(int argc, char* argv[]) {
 
     } else if(strcmp(argv[1], "phase") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    salsa gap phase fasta(s)" << std::endl;
+            std::cout << "Usage:    sasi gap phase fasta(s)" << std::endl;
             return EXIT_SUCCESS;
         }
 
@@ -70,7 +70,7 @@ std::vector<size_t> histogram(int num_files, char* files[]) {
     // for each fasta file in input
     for(int file = 0; file < num_files; ++file) {
         // read fasta file
-        salsa::data_t data = salsa::fasta::read_fasta(files[file]);
+        sasi::data_t data = sasi::fasta::read_fasta(files[file]);
 
         // if capacity of vector is smaller than size of aln, resize
         if(counts.capacity() < data.len()) {
@@ -128,7 +128,7 @@ std::vector<float> phase(int num_files, char* files[]) {
     // for each fasta file in input
     for(int file = 0; file < num_files; ++file) {
         // read fasta file
-        salsa::data_t data = salsa::fasta::read_fasta(files[file]);
+        sasi::data_t data = sasi::fasta::read_fasta(files[file]);
 
         // find gaps on each sequence
         for(const std::string& seq : data.seqs) {
@@ -152,4 +152,4 @@ std::vector<float> phase(int num_files, char* files[]) {
 
     return phase;
 }
-}  // namespace salsa
+}  // namespace sasi

@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <filesystem>
 
-namespace salsa {
+namespace sasi {
 
 // extracts extension and filename from both file.foo and ext:file.foo
 struct file_type_t {
@@ -55,5 +55,5 @@ struct data_t {
     }
 };
 
-}  // namespace salsa
+}  // namespace sasi
 #endif

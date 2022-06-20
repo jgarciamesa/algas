@@ -13,11 +13,11 @@
 
 #include "structs.hpp"
 
-namespace salsa::utils {
+namespace sasi::utils {
 
 file_type_t extract_file_type(std::string path);
 
 int write_histogram(std::vector<size_t>& count);
 
-}  // namespace salsa::utils
+}  // namespace sasi::utils
 #endif

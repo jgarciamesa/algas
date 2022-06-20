@@ -1,12 +1,12 @@
 /* Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com> */
 
-#include <salsa/sequence.hpp>
+#include <sasi/sequence.hpp>
 
-namespace salsa {
+namespace sasi {
 
 int sequence(int argc, char* argv[]) {
     if((argc < 2 || (strcmp(argv[1], "help") == 0))) {
-        std::cout << "Usage salsa sequence command [options]" << std::endl
+        std::cout << "Usage sasi sequence command [options]" << std::endl
                   << std::endl;
         std::cout << "Commands available:   help - display this message"
                   << std::endl;
@@ -21,7 +21,7 @@ int sequence(int argc, char* argv[]) {
     // stop
     if(strcmp(argv[1], "stop") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    salsa sequence stop fasta(s) [options]"
+            std::cout << "Usage:    sasi sequence stop fasta(s) [options]"
                       << std::endl
                       << std::endl;
             std::cout << " -i\t\t Level of information "
@@ -82,7 +82,7 @@ int sequence(int argc, char* argv[]) {
 
         // for each fasta file in input
         for(auto file : files) {
-            salsa::data_t data = salsa::fasta::read_fasta(file);
+            sasi::data_t data = sasi::fasta::read_fasta(file);
 
             // find early stop codons on each sequence
             for(size_t i = 0; i < data.seqs.size(); i++) {
@@ -144,7 +144,7 @@ int sequence(int argc, char* argv[]) {
     }
     if(strcmp(argv[1], "frameshift") == 0) {
         if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
-            std::cout << "Usage:    salsa sequence frameshift fasta(s)"
+            std::cout << "Usage:    sasi sequence frameshift fasta(s)"
                       << std::endl;
             return EXIT_SUCCESS;
         }
@@ -152,7 +152,7 @@ int sequence(int argc, char* argv[]) {
         size_t total_count{0};
         // for each fasta file in input
         for(int file = 2; file < argc; file++) {
-            salsa::data_t data = salsa::fasta::read_fasta(argv[file]);
+            sasi::data_t data = sasi::fasta::read_fasta(argv[file]);
 
             for(const std::string& seq : data.seqs) {
                 if(seq.length() % 3 != 0) {
@@ -167,4 +167,4 @@ int sequence(int argc, char* argv[]) {
     std::cout << "Command " << argv[1] << " not supported." << std::endl;
     return EXIT_FAILURE;
 }
-}  // namespace salsa
+}  // namespace sasi

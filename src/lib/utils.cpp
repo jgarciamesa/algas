@@ -1,9 +1,9 @@
 /* Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com> */
 
 #include <filesystem>
-#include <salsa/utils.hpp>
+#include <sasi/utils.hpp>
 
-namespace salsa::utils {
+namespace sasi::utils {
 
 file_type_t extract_file_type(std::string path) {
     constexpr auto npos = std::string::npos;
@@ -39,4 +39,4 @@ int write_histogram(std::vector<size_t>& counts) {
     }
     return EXIT_SUCCESS;
 }
-}  // namespace salsa::utils
+}  // namespace sasi::utils

@@ -7,7 +7,7 @@
 
 #include "fasta.hpp"
 
-namespace salsa {
+namespace sasi {
 int sequence(int argc, char* argv[]);
 }
 #endif
