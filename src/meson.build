@@ -9,7 +9,7 @@ boost_dep = dependency('boost',
 
 subdir('lib')
 
-executable('sasi', '../sasi.cpp',
+executable('sasi', 'sasi.cpp',
 	include_directories : inc,
 	link_with : [libsasi]
 )
