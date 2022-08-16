@@ -11,3 +11,11 @@ project('sasi', 'cpp',
 subdir('contrib')
 subdir('src')
 
+configure_file(input : 'sasi.sublime-project.in',
+	output : 'sasi.sublime-project',
+	configuration : {
+		'source_dir' : meson.project_source_root(),
+		'project_name' : meson.project_name(),
+		'build_dir' : meson.project_build_root()
+	}
+)

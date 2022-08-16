@@ -1,0 +1,58 @@
+{
+	"folders":
+	[
+		{
+			"path": "@source_dir@",
+			"folder_exclude_patterns": ["build"]
+		}
+	],
+	"settings": {
+    	"tab_size": 4,
+    	"translate_tabs_to_spaces": true,
+        "compile_commands": "${project_path}",
+        "ecc_flags_sources": [
+            {"file": "compile_commands.json", "search_in": "${project_path}"},
+            {"file": "CMakeLists.txt"}
+        ],
+        "ecc_header_to_source_mapping": [
+            "./{stamp}.cpp",
+            "@source_dir@/src/lib/{stamp}.cpp",
+            "@source_dir@/src/{stamp}.cpp",
+            "@source_dir@/src/lib/",
+            "@source_dir@/src/"
+        ],
+		"ClangFormat": {
+			"format_on_save": true
+		}
+	},
+    "SublimeLinter": {
+        "linters":
+        {
+        	"clang": {
+				"extra_flags": "-Wall -std=c++17 -Wno-pragma-once-outside-header",
+            	"include_dirs": [
+                	"${project_path}/../../src/include/",
+                	"${project_path}/src",
+                	"/usr/include/eigen3",
+                	"/usr/include/eigen3/unsupported"
+            	],
+                "disable": true
+            }
+        }
+    },
+	"build_systems":
+	[
+		{
+			"name": "@project_name@ - default",
+			"cmd": ["meson", "compile", "-C", "@build_dir@"],
+			"working_dir": "${project_path}",
+			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$"
+		},
+		{
+			"name": "@project_name@ - test",
+			"cmd": ["meson", "test", "-C", "@build_dir@"],
+			"working_dir": "${project_path}",
+			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$"
+		}
+    ]
+}
