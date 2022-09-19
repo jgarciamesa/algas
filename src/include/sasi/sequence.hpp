@@ -9,5 +9,5 @@
 
 namespace sasi {
 int sequence(int argc, char* argv[]);
-}
+}  // namespace sasi
 #endif

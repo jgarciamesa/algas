@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    // TODO: use CLI11 to parse cli arguments
+    // TODO(JJ): use CLI11 to parse cli arguments
 
     if(strcmp(argv[1], "gap") == 0) {
         return sasi::gap(argc - 1, argv + 1);
