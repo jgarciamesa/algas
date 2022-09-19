@@ -5,7 +5,6 @@
 
 #define GAP '-'
 
-#include <boost/algorithm/string.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
