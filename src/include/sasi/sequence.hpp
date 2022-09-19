@@ -4,6 +4,7 @@
 #define SEQUENCE_HPP
 
 #include <algorithm>
+#include <cstring>
 
 #include "fasta.hpp"
 

@@ -3,6 +3,8 @@
 #ifndef GAP_HPP
 #define GAP_HPP
 
+#include <cstring>
+
 #include "fasta.hpp"
 #include "utils.hpp"
 

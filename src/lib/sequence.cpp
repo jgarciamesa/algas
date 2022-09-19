@@ -5,7 +5,7 @@
 namespace sasi {
 
 int sequence(int argc, char* argv[]) {
-    if((argc < 2 || (strcmp(argv[1], "help") == 0))) {
+    if((argc < 2 || (std::strcmp(argv[1], "help") == 0))) {
         std::cout << "Usage sasi sequence command [options]" << std::endl
                   << std::endl;
         std::cout << "Commands available:   help - display this message"
@@ -19,8 +19,8 @@ int sequence(int argc, char* argv[]) {
     }
 
     // stop
-    if(strcmp(argv[1], "stop") == 0) {
-        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+    if(std::strcmp(argv[1], "stop") == 0) {
+        if((argc < 3) || (std::strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    sasi sequence stop fasta(s) [options]"
                       << std::endl
                       << std::endl;
@@ -39,7 +39,7 @@ int sequence(int argc, char* argv[]) {
         bool gaps{true};
 
         for(int i = 0; i < argc; i++) {
-            if(strcmp(argv[i], "-i") == 0) {
+            if(std::strcmp(argv[i], "-i") == 0) {
                 if(i == argc - 1) {
                     std::cout << "Missing value for -i option, default value "
                                  "(0) used."
@@ -65,7 +65,7 @@ int sequence(int argc, char* argv[]) {
                     // remove '-i' argument and its value
                     files.erase(files.begin() + i - 2, files.begin() + i);
                 }
-            } else if(strcmp(argv[i], "-g") == 0) {
+            } else if(std::strcmp(argv[i], "-g") == 0) {
                 gaps = false;
                 // remove '-d' argument
                 files.erase(files.begin() + i - 2);
@@ -142,8 +142,8 @@ int sequence(int argc, char* argv[]) {
         }
         return EXIT_SUCCESS;
     }
-    if(strcmp(argv[1], "frameshift") == 0) {
-        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+    if(std::strcmp(argv[1], "frameshift") == 0) {
+        if((argc < 3) || (std::strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    sasi sequence frameshift fasta(s)"
                       << std::endl;
             return EXIT_SUCCESS;

@@ -7,7 +7,7 @@
 namespace sasi {
 
 int gap(int argc, char* argv[]) {
-    if((argc < 2) || (strcmp(argv[1], "help") == 0)) {
+    if((argc < 2) || (std::strcmp(argv[1], "help") == 0)) {
         std::cout << "Usage sasi gap command [options]" << std::endl
                   << std::endl;
         std::cout << "Commands available:   help - display this message"
@@ -19,8 +19,8 @@ int gap(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    if(strcmp(argv[1], "count") == 0) {
-        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+    if(std::strcmp(argv[1], "count") == 0) {
+        if((argc < 3) || (std::strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    sasi gap count fasta(s)" << std::endl;
         }
 
@@ -29,8 +29,8 @@ int gap(int argc, char* argv[]) {
         // write counts to stdout
         return sasi::utils::write_histogram(gap_counts);
 
-    } else if(strcmp(argv[1], "frameshift") == 0) {
-        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+    } else if(std::strcmp(argv[1], "frameshift") == 0) {
+        if((argc < 3) || (std::strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    sasi gap frameshift fasta(s)" << std::endl;
         }
 
@@ -43,8 +43,8 @@ int gap(int argc, char* argv[]) {
 
         return EXIT_SUCCESS;
 
-    } else if(strcmp(argv[1], "phase") == 0) {
-        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+    } else if(std::strcmp(argv[1], "phase") == 0) {
+        if((argc < 3) || (std::strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    sasi gap phase fasta(s)" << std::endl;
             return EXIT_SUCCESS;
         }
@@ -56,8 +56,8 @@ int gap(int argc, char* argv[]) {
         std::cout << "phase 1:" << phase_counts[1] << '\n';
         std::cout << "phase 2:" << phase_counts[2] << '\n';
         return EXIT_SUCCESS;
-    } else if(strcmp(argv[1], "position") == 0) {
-        if((argc < 3) || (strcmp(argv[2], "help") == 0)) {
+    } else if(std::strcmp(argv[1], "position") == 0) {
+        if((argc < 3) || (std::strcmp(argv[2], "help") == 0)) {
             std::cout << "Usage:    sasi gap position fasta(s)" << std::endl;
             return EXIT_SUCCESS;
         }
