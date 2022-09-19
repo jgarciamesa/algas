@@ -1,5 +1,8 @@
 /* Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com> */
 
+#include <doctest.h>
+
+#include <filesystem>
 #include <sasi/fasta.hpp>
 
 namespace sasi::fasta {
@@ -43,18 +46,61 @@ sasi::data_t read_fasta(const std::string& f_path) {
             name = line.substr(1);
             fasta.names.push_back(name);
             content.clear();
-        } else if(!name.empty()) {
-            // Remove spaces
-            line.erase(remove_if(line.begin(), line.end(), ::isspace),
-                       line.end());
-            content += line;
+            continue;
         }
+        // Remove spaces
+        line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+        content += line;
     }
-    if(!name.empty()) {  // Add last sequence FSA if needed
-        fasta.seqs.push_back(content);
-    }
+    fasta.seqs.push_back(content);  // Add last sequence if needed
 
     return fasta;
 }
+
+/// @private
+// GCOVR_EXCL_START
+TEST_CASE("read_fasta") {
+    auto test = [](std::string file, sasi::data_t expected) {
+        std::ofstream out;
+        out.open("test.fasta");
+        REQUIRE(out);
+        out << file;
+        out.close();
+
+        sasi::data_t result = sasi::fasta::read_fasta("test.fasta");
+        CHECK(std::filesystem::remove("test.fasta"));
+
+        CHECK(result.names == expected.names);
+        CHECK(result.seqs == expected.seqs);
+    };
+
+    SUBCASE("Read fasta") {
+        std::string file{"; comment line\n>1\n\nCTCTGGATAGTC\n>2\nCTATAGTC\n"};
+        sasi::data_t expected("test.fasta", {"1", "2"},
+                              {"CTCTGGATAGTC", "CTATAGTC"});
+        test(file, expected);
+    }
+
+    SUBCASE("File not found") {
+        REQUIRE_THROWS_AS(read_fasta("test-not-found.fasta"),
+                          std::invalid_argument);
+    }
+
+    SUBCASE("One sequence, multiple lines") {
+        std::string file{"; comment line\n>1\nNTNTGGATAGTC\nACGTACGTACGT\n"};
+        sasi::data_t expected("test.fasta", {"1"},
+                              {"NTNTGGATAGTCACGTACGTACGT"});
+        test(file, expected);
+    }
+
+    SUBCASE("Empty lines at end of file") {
+        std::string file{
+            "; comment line\n>nombre\nNTNTGGATAGTC\n>name2\n\n\nAACG"};
+        sasi::data_t expected("test.fasta", {"nombre", "name2"},
+                              {"NTNTGGATAGTC", "AACG"});
+        test(file, expected);
+    }
+}
+// GCOVR_EXCL_STOP
 
 }  // namespace sasi::fasta
