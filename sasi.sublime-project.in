@@ -22,7 +22,7 @@
             "@source_dir@/src/"
         ],
 		"ClangFormat": {
-			"format_on_save": true
+            "format_on_save": true
 		}
 	},
     "SublimeLinter": {
