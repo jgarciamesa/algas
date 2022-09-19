@@ -1,0 +1,42 @@
+name: ci_meson
+
+on:
+  push:
+    paths:
+      - "**.cpp"
+      - "**.c"
+      - "**.h"
+      - "**.hpp"
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-versoin: '3.x'
+    - name: Install Testing Tools
+      run: sudo apt-get install -yq clang-format clang-tidy
+    - name: Install Gcovr
+      run: sudo pip install gcovr
+    # - name: Install gcc11
+      # run: sudo apt install gcc-11 g++-11
+    - uses: BSFishy/meson-build@v1.0.3
+      with:
+        action: test
+        directory: build
+        setup-options: -Db_coverage=true --buildtype=debug
+        options: --verbose
+        meson-version: 0.59.1
+        ninja-version: 1.10.2
+    - name: Coverage
+      run: ninja coverage-xml -C build
+    - name: Upload coverage results
+      uses: codecov/codecov-action@v2
+      with:
+        files: build/meson-logs/coverage.xml
+    - name: Clang format check
+      run: ninja clang-format-check -C build
+    - name: Clang tidy
+      run: ninja clang-tidy -C build
