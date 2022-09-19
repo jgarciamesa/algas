@@ -7,7 +7,7 @@ libsasi_sources = files([
 	'sequence.cpp'
 ])
 
-libsasi_deps = [boost_dep, cli_dep, doctest_dep]
+libsasi_deps = [cli_dep, doctest_dep]
 
 libsasi = static_library('libsasi', [libsasi_sources],
 	include_directories : inc,
