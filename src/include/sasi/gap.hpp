@@ -8,8 +8,9 @@
 
 namespace sasi {
 int gap(int argc, char* argv[]);
-std::vector<size_t> histogram(int num_files, char* files[]);
+std::vector<size_t> count(int num_files, char* files[]);
 std::pair<size_t, size_t> frameshift(std::vector<size_t> counts);
 std::vector<float> phase(int num_files, char* files[]);
+std::vector<size_t> position(int num_files, char* files[]);
 }  // namespace sasi
 #endif
