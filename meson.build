@@ -10,6 +10,7 @@ project('sasi', 'cpp',
 
 subdir('contrib')
 subdir('src')
+subdir('tests')
 
 configure_file(input : 'sasi.sublime-project.in',
 	output : 'sasi.sublime-project',

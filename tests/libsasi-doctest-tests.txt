@@ -1,0 +1,4 @@
+read_fasta
+trim_whitespace
+extract_file_type
+write_histogram
