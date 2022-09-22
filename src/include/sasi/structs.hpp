@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <vector>
 
 namespace sasi {
 
