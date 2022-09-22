@@ -12,10 +12,15 @@ int gap(int argc, char* argv[]) {
                   << std::endl;
         std::cout << "Commands available:   help - display this message"
                   << std::endl;
-        std::cout << "                      frameshift" << std::endl;
-        std::cout << "                      count" << std::endl;
-        std::cout << "                      phase" << std::endl;
-        std::cout << "                      position" << std::endl;
+        std::cout << "                      frameshift - number of gaps with "
+                     "length not multiple of 3"
+                  << std::endl;
+        std::cout << "                      count - count number of gaps"
+                  << std::endl;
+        std::cout << "                      phase - distribution of gaps phases"
+                  << std::endl;
+        std::cout << "                      position - position of gaps"
+                  << std::endl;
         return EXIT_SUCCESS;
     }
 
