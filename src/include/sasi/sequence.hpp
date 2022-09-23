@@ -10,5 +10,6 @@
 
 namespace sasi {
 int sequence(int argc, char* argv[]);
+std::size_t ambiguous(int num_files, char* files[]);
 }  // namespace sasi
 #endif
