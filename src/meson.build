@@ -6,5 +6,7 @@ subdir('lib')
 
 executable('sasi', 'sasi.cpp',
 	include_directories : inc,
-	link_with : [libsasi]
+	dependencies : [libsasi_deps],
+	link_with : [libsasi],
+	install : true
 )

@@ -60,7 +60,8 @@ sasi::data_t read_fasta(const std::string& f_path) {
 /// @private
 // GCOVR_EXCL_START
 TEST_CASE("read_fasta") {
-    auto test = [](std::string file, sasi::data_t expected) {
+    // NOLINTNEXTLINE(misc-unused-parameters)
+    auto test = [](const std::string_view file, const sasi::data_t& expected) {
         std::ofstream out;
         out.open("test.fasta");
         REQUIRE(out);

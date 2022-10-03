@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Juan J. Garcia Mesa <juanjosegarciamesa@gmail.com>
 
-# 	ALignment GAp Statistic
+# 	Sequence Alignment Statistics
 # Init project
 project('sasi', 'cpp',
 	version : '0.1.9000',

@@ -154,4 +154,38 @@ TEST_CASE("write_histogram") {
     }
 }
 // GCOVR_EXCL_STOP
+
+sasi::args_t set_cli_options(int argc, char* argv[], CLI::App& app) {
+    sasi::args_t args;
+
+    auto gap = app.add_subcommand("gap", "Gap information");
+    auto seq = app.add_subcommand("sequence", "Sequence information");
+
+    app.require_subcommand(0, 1);
+
+    gap->add_flag("-f,--frameshift", args.gap.frameshift,
+                  "Number of gaps with length not multiple of 3");
+    gap->add_flag("-c,--count", args.gap.count, "Count number of gaps");
+    gap->add_flag("-p,--position", args.gap.position, "Position of gaps");
+    gap->add_flag("-d,--phase", args.gap.phase, "Distribution of gap phases");
+
+    seq->add_flag("-s,--stop", args.seq.stop, "Find early stop codons");
+    seq->add_flag("-f,--frameshift", args.seq.frameshift,
+                  "Number of sequences with length not multiple of 3");
+    seq->add_flag("-a,--ambiguous", args.seq.ambiguous,
+                  "Count ambiguous nucleotides");
+    seq->add_option("-i,--information", args.seq.stop_inf, "Description");
+    seq->add_flag("-g,--discard-gaps", args.seq.discard_gaps, "Description");
+
+    seq->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->required()
+        ->take_all()
+        ->check(CLI::ExistingFile);
+    gap->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->required()
+        ->take_all()
+        ->check(CLI::ExistingFile);
+
+    return args;
+}
 }  // namespace sasi::utils

@@ -9,7 +9,7 @@
 #include "fasta.hpp"
 
 namespace sasi {
-int sequence(int argc, char* argv[]);
-std::size_t ambiguous(int num_files, char* files[]);
+int sequence(const sasi::args_t& args, const CLI::App& app);
+std::size_t ambiguous(const sasi::args_t& args);
 }  // namespace sasi
 #endif

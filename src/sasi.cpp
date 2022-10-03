@@ -2,26 +2,24 @@
 
 #include <sasi/gap.hpp>
 #include <sasi/sequence.hpp>
+#include <sasi/utils.hpp>
 
 int main(int argc, char* argv[]) {
-    if((argc < 2) || (std::strcmp(argv[1], "help") == 0)) {
-        std::cout << "Usage:    sasi command [options]" << std::endl
-                  << std::endl;
-        std::cout << "Commands available:   help" << std::endl;
-        std::cout << "                      gap" << std::endl;
-        std::cout << "                      sequence" << std::endl;
-        return EXIT_SUCCESS;
-    }
+    CLI::App app{"SASi - simple sequence alignment statistics - v0.1.9000"};
 
-    // TODO(JJ): use CLI11 to parse cli arguments
+    try {
+        sasi::args_t args = sasi::utils::set_cli_options(argc, argv, app);
+        CLI11_PARSE(app, argc, argv);
+        if(app.got_subcommand("gap")) {
+            return sasi::gap(args, app);
+        }
+        if(app.got_subcommand("sequence")) {
+            return sasi::sequence(args, app);
+        }
 
-    if(std::strcmp(argv[1], "gap") == 0) {
-        return sasi::gap(argc - 1, argv + 1);
+        std::cout << app.help() << std::endl;
+    } catch(std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
     }
-    if(std::strcmp(argv[1], "sequence") == 0) {
-        return sasi::sequence(argc - 1, argv + 1);
-    }
-
-    std::cout << "Command " << argv[1] << " not supported." << std::endl;
     return EXIT_FAILURE;
 }

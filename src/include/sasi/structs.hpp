@@ -3,6 +3,7 @@
 #ifndef STRUCTS_HPP
 #define STRUCTS_HPP
 
+#include <CLI11.hpp>
 #include <algorithm>
 #include <filesystem>
 #include <vector>
@@ -16,7 +17,7 @@ struct file_type_t {
     std::string type_ext;
 };
 
-struct data_t {
+class data_t {
    public:
     std::filesystem::path path;     /*!< path to input file */
     std::vector<std::string> names; /*!< names of fasta sequences */
@@ -54,6 +55,30 @@ struct data_t {
                                 })
             ->size();
     }
+};
+
+struct gap_t {
+    bool frameshift{false};
+    bool count{false};
+    bool phase{false};
+    bool position{false};
+};
+
+enum struct info_detail { TOTAL = 0, FILE = 1, SEQ = 2 };
+
+struct seq_t {
+    bool stop{false};
+    bool frameshift{false};
+    bool ambiguous{false};
+    info_detail stop_inf{info_detail::TOTAL};
+    bool discard_gaps{false};
+};
+
+struct args_t {
+   public:
+    gap_t gap;
+    seq_t seq;
+    std::vector<std::string> input;
 };
 
 }  // namespace sasi
