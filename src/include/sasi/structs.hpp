@@ -57,27 +57,14 @@ class data_t {
     }
 };
 
-struct gap_t {
-    bool frameshift{false};
-    bool count{false};
-    bool phase{false};
-    bool position{false};
-};
-
 enum struct info_detail { TOTAL = 0, FILE = 1, SEQ = 2 };
-
-struct seq_t {
-    bool stop{false};
-    bool frameshift{false};
-    bool ambiguous{false};
-    info_detail stop_inf{info_detail::TOTAL};
-    bool discard_gaps{false};
-};
 
 struct args_t {
    public:
-    gap_t gap;
-    seq_t seq;
+    CLI::App* gap;
+    CLI::App* seq;
+    info_detail stop_inf{info_detail::TOTAL};
+    bool discard_gaps{false};
     std::vector<std::string> input;
 };
 

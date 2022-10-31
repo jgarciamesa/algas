@@ -8,8 +8,10 @@
 
 #include "fasta.hpp"
 
-namespace sasi {
-int sequence(const sasi::args_t& args, const CLI::App& app);
+namespace sasi::seq {
+enum struct verb { STOP = 0, FRMST = 1, AMB = 2 };
 std::size_t ambiguous(const sasi::args_t& args);
-}  // namespace sasi
+std::size_t frameshift(const sasi::args_t& args);
+std::vector<std::string> stop_codons(const sasi::args_t& args);
+}  // namespace sasi::seq
 #endif

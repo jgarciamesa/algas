@@ -4,7 +4,8 @@ libsasi_sources = files([
 	'fasta.cpp',
 	'gap.cpp',
 	'utils.cpp',
-	'sequence.cpp'
+	'sequence.cpp',
+	'output.cpp'
 ])
 
 libsasi_deps = [cli_dep, doctest_dep]

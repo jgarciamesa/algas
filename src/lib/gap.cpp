@@ -4,61 +4,7 @@
 
 #include <sasi/gap.hpp>
 
-namespace sasi {
-
-// int gap(const sasi::args_t& args,  int argc, char* argv[]) {
-int gap(const sasi::args_t& args, const CLI::App& app) {
-    if(args.gap.count) {
-        std::vector<size_t> gap_counts = count(args);
-
-        // write counts to stdout
-        return sasi::utils::write_histogram(gap_counts);
-    }
-
-    if(args.gap.frameshift) {
-        std::pair<size_t, size_t> frameshifts = frameshift(count(args));
-
-        std::cout << "number of gaps with length not multiple of 3: "
-                  << frameshifts.first << " (" << frameshifts.first << "/"
-                  << frameshifts.second << ")" << std::endl;
-
-        return EXIT_SUCCESS;
-    }
-
-    if(args.gap.phase) {
-        std::vector<float> phase_counts = phase(args);
-
-        // write counts to stdout
-        std::cout << "phase 0:" << phase_counts[0] << '\n';
-        std::cout << "phase 1:" << phase_counts[1] << '\n';
-        std::cout << "phase 2:" << phase_counts[2] << '\n';
-        return EXIT_SUCCESS;
-    }
-
-    if(args.gap.position) {
-        std::vector<size_t> gap_positions = position(args);
-
-        // write counts to stdout
-        return sasi::utils::write_histogram(gap_positions, true);
-    }
-
-    throw std::invalid_argument("Subcommand not accepted or missing.");
-
-    return EXIT_FAILURE;
-}
-
-/// @private
-// GCOVR_EXCL_START
-// TEST_CASE("gap") {
-//     CHECK(sasi::gap("help"))
-//     CHECK(sasi::gap("histogram"))
-//     CHECK(sasi::gap("frameshift"))
-//     CHECK(sasi::gap("phase"))
-//     // fail
-//     CHECK(!sasi::gap("phhase"))
-//     CHECK(!sasi::gap("other"))
-// }
-// GCOVR_EXCL_STOP
+namespace sasi::gap {
 
 std::vector<size_t> count(const sasi::args_t& args) {
     // gap counts vector
@@ -67,7 +13,7 @@ std::vector<size_t> count(const sasi::args_t& args) {
     std::vector<size_t> counts;
 
     // for each fasta file in input
-    for(auto file : args.input) {
+    for(const auto& file : args.input) {
         // read fasta file
         sasi::data_t data = sasi::fasta::read_fasta(file);
 
@@ -116,27 +62,84 @@ std::vector<size_t> position(const sasi::args_t& args) {
     //  at position 0 is number of gaps at beginning of sequence)
     std::vector<size_t> gaps(101, 0);
 
-    for(auto file : args.input) {
+    for(const auto& file : args.input) {
         // read fasta file
         sasi::data_t data = sasi::fasta::read_fasta(file);
 
         // find gaps on each sequence
         for(const std::string& seq : data.seqs) {
-            size_t pos{seq.find(GAP, 0)};
-            while(pos != std::string::npos) {
+            size_t pos{0};
+            while(pos < seq.length()) {
+                // look for next gap
+                pos = seq.find(GAP, pos);
+                if(pos > seq.length()) {
+                    break;
+                }
                 // store current gap position
-                ++gaps[pos / seq.length()];
+                auto percentage = static_cast<float>(pos) /
+                                  static_cast<float>(seq.length() - 1) * 100;
+                ++gaps[static_cast<size_t>(percentage)];
                 // skip length of current gap (only beginning is reported)
-                while(seq.at(pos) == GAP) {
+                while(pos < seq.length() && seq.at(pos) == GAP) {
                     ++pos;
                 }
-                // look for next gap
-                pos = seq.find(GAP, pos + 1);
             }
         }
     }
 
     return gaps;
+}
+
+/// @private
+TEST_CASE("position") {
+    SUBCASE("end with gap") {
+        std::ofstream out;
+        out.open("test-positions.fa");
+        out << ">seqA\nAAA---\n";
+        out.close();
+
+        sasi::args_t args;
+        args.input = {"test-positions.fa"};
+        std::vector<size_t> expected(101, 0);
+        expected[60] = 1;
+        auto pos = position(args);
+        for(size_t i = 0; i < expected.size(); ++i) {
+            CHECK_EQ(pos[i], expected[i]);
+        }
+        REQUIRE(std::filesystem::remove("test-positions.fa"));
+    }
+    SUBCASE("gap length 1 at end") {
+        std::ofstream out;
+        out.open("test-positions.fa");
+        out << ">seqA\nAAA-\n";
+        out.close();
+
+        sasi::args_t args;
+        args.input = {"test-positions.fa"};
+        std::vector<size_t> expected(101, 0);
+        expected[100] = 1;
+        auto pos = position(args);
+        for(size_t i = 0; i < expected.size(); ++i) {
+            CHECK_EQ(pos[i], expected[i]);
+        }
+        REQUIRE(std::filesystem::remove("test-positions.fa"));
+    }
+    SUBCASE("start with gap") {
+        std::ofstream out;
+        out.open("test-positions.fa");
+        out << ">seqA\n--AA\n";
+        out.close();
+
+        sasi::args_t args;
+        args.input = {"test-positions.fa"};
+        std::vector<size_t> expected(101, 0);
+        expected[0] = 1;
+        auto pos = position(args);
+        for(size_t i = 0; i < expected.size(); ++i) {
+            CHECK_EQ(pos[i], expected[i]);
+        }
+        REQUIRE(std::filesystem::remove("test-positions.fa"));
+    }
 }
 
 std::pair<size_t, size_t> frameshift(const std::vector<size_t>& counts) {
@@ -158,7 +161,7 @@ std::vector<float> phase(const sasi::args_t& args) {
     std::vector<float> phase = {0, 0, 0};
 
     // for each fasta file in input
-    for(auto file : args.input) {
+    for(const auto& file : args.input) {
         // read fasta file
         sasi::data_t data = sasi::fasta::read_fasta(file);
 
@@ -177,11 +180,12 @@ std::vector<float> phase(const sasi::args_t& args) {
         }
     }
 
-    float total = std::accumulate(phase.begin(), phase.end(), 0);
+    auto total =
+        static_cast<float>(std::accumulate(phase.begin(), phase.end(), 0));
     phase[0] /= total;
     phase[1] /= total;
     phase[2] /= total;
 
     return phase;
 }
-}  // namespace sasi
+}  // namespace sasi::gap

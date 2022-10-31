@@ -1,5 +1,5 @@
 read_fasta
+position
 sequence_ambiguous
 trim_whitespace
 extract_file_type
-write_histogram

@@ -59,7 +59,9 @@ file_type_t extract_file_type(std::string path) {
 /// @private
 // GCOVR_EXCL_START
 TEST_CASE("extract_file_type") {
+    // NOLINTNEXTLINE(misc-unused-parameters)
     auto test_extract_ft = [](const std::string& input, const std::string& path,
+                              // NOLINTNEXTLINE(misc-unused-parameters)
                               const std::string& ftype) {
         sasi::file_type_t result = sasi::utils::extract_file_type(input);
         CHECK(result.path == path);
@@ -75,116 +77,42 @@ TEST_CASE("extract_file_type") {
 }
 // GCOVR_EXCL_STOP
 
-int write_histogram(std::vector<size_t>& counts, bool zeros,
-                    const std::string& out_file) {
-    // if no file specified or file is "-" write to stdout
-    std::ostream* pout(nullptr);
-    std::ofstream outfile;
-    if(out_file.empty() || out_file == "-") {
-        pout = &std::cout;
-    } else {
-        outfile.open(out_file);
-        if(!outfile) {
-            throw std::invalid_argument("Opening output file " + out_file +
-                                        "failed.");
-        }
-        pout = &outfile;
-    }
-    std::ostream& out = *pout;
-
-    // if no gaps, print 1 gap of length zero
-    auto any_gaps = std::find_if(begin(counts), end(counts),
-                                 [](size_t s) { return s > 0; });
-    if(any_gaps == std::end(counts)) {
-        out << 0 << "," << 0 << std::endl;
-        return EXIT_SUCCESS;
-    }
-
-    // print all gaps counts that are not zero
-    for(size_t i = 1; i < counts.size(); i++) {
-        if(zeros || (counts[i] > 0)) {
-            out << i << "," << counts[i] << std::endl;
-        }
-    }
-    return EXIT_SUCCESS;
-}
-
-/// @private
-// GCOVR_EXCL_START
-TEST_CASE("write_histogram") {
-    auto test_histogram = [](std::vector<size_t>& counts, std::string& expected,
-                             bool zeros = false) {
-        CHECK_EQ(
-            sasi::utils::write_histogram(counts, zeros, "test_histogram.csv"),
-            EXIT_SUCCESS);
-        // read output
-        std::ifstream infile("test_histogram.csv");
-        std::string result;
-        infile.seekg(0, std::ios::end);
-        result.resize(infile.tellg());
-        infile.seekg(0, std::ios::beg);
-        infile.read(&result[0], result.size());
-
-        CHECK(result == expected);
-        CHECK(std::filesystem::remove("test_histogram.csv"));
-    };
-
-    SUBCASE("All zeros") {
-        std::vector<size_t> counts = {0, 0, 0, 0, 0};
-        std::string expected{"0,0\n"};
-        test_histogram(counts, expected);
-    }
-
-    SUBCASE("Empty") {
-        std::vector<size_t> counts = {};
-        std::string expected{"0,0\n"};
-        test_histogram(counts, expected);
-    }
-
-    SUBCASE("No zeros") {
-        std::vector<size_t> counts = {0, 2, 3, 4, 0, 0, 5, 6, 1000};
-        std::string expected{"1,2\n2,3\n3,4\n6,5\n7,6\n8,1000\n"};
-        test_histogram(counts, expected);
-    }
-
-    SUBCASE("Include zeros") {
-        std::vector<size_t> counts = {0, 2, 3, 4, 0, 0, 5, 6, 1000};
-        std::string expected{"1,2\n2,3\n3,4\n4,0\n5,0\n6,5\n7,6\n8,1000\n"};
-        test_histogram(counts, expected, true);
-    }
-}
-// GCOVR_EXCL_STOP
-
-sasi::args_t set_cli_options(int argc, char* argv[], CLI::App& app) {
+sasi::args_t set_cli_options(CLI::App& app) {
     sasi::args_t args;
 
-    auto gap = app.add_subcommand("gap", "Gap information");
-    auto seq = app.add_subcommand("sequence", "Sequence information");
+    // Commands - 1 required: gap & sequence
+    args.gap = app.add_subcommand("gap", "Gap information");
+    args.seq = app.add_subcommand("sequence", "Sequence information");
+    app.require_subcommand(1);
 
-    app.require_subcommand(0, 1);
-
-    gap->add_flag("-f,--frameshift", args.gap.frameshift,
-                  "Number of gaps with length not multiple of 3");
-    gap->add_flag("-c,--count", args.gap.count, "Count number of gaps");
-    gap->add_flag("-p,--position", args.gap.position, "Position of gaps");
-    gap->add_flag("-d,--phase", args.gap.phase, "Distribution of gap phases");
-
-    seq->add_flag("-s,--stop", args.seq.stop, "Find early stop codons");
-    seq->add_flag("-f,--frameshift", args.seq.frameshift,
-                  "Number of sequences with length not multiple of 3");
-    seq->add_flag("-a,--ambiguous", args.seq.ambiguous,
-                  "Count ambiguous nucleotides");
-    seq->add_option("-i,--information", args.seq.stop_inf, "Description");
-    seq->add_flag("-g,--discard-gaps", args.seq.discard_gaps, "Description");
-
-    seq->add_option("input", args.input, "Input file(s) (FASTA format)")
-        ->required()
+    // Add input positional argument
+    args.seq->add_option("input", args.input, "Input file(s) (FASTA format)")
         ->take_all()
         ->check(CLI::ExistingFile);
-    gap->add_option("input", args.input, "Input file(s) (FASTA format)")
-        ->required()
+    args.gap->add_option("input", args.input, "Input file(s) (FASTA format)")
         ->take_all()
         ->check(CLI::ExistingFile);
+
+    // Gap subcommands - 1 required: frameshift, count, position, phase
+    args.gap->add_subcommand("frameshift",
+                             "Count gaps with length not multiple of 3");
+    args.gap->add_subcommand("count", "Count number of gaps");
+    args.gap->add_subcommand("position", "Position of gaps");
+    args.gap->add_subcommand("phase", "Distribution of gap phases");
+    args.gap->require_subcommand(1);
+
+    // Seq subcommands - 1 required: stop, frameshift, ambiguous
+    auto* stop = args.seq->add_subcommand("stop", "Count early stop codons");
+    args.seq->add_subcommand("frameshift",
+                             "Count sequences with length not multiple of 3");
+    args.seq->add_subcommand("ambiguous", "Count ambiguous nucleotides");
+    args.seq->require_subcommand(1);
+
+    // Command & subcommand specific options & flags
+    stop->add_option("-i,--information", args.stop_inf,
+                     "Stop codons: total = 0, file = 1, sequence = 2");
+    args.seq->add_flag("-g,--discard-gaps", args.discard_gaps,
+                       "Remove gaps before analysis");
 
     return args;
 }
