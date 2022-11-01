@@ -6,23 +6,32 @@
 
 namespace sasi::gap {
 
-std::vector<size_t> count(const sasi::args_t& args) {
-    // gap counts vector
-    //  each position is the number of gaps with its length (e.g. value
-    //  at position 1 is number of gaps of size 1)
+/**
+ * @brief Gap frequency.
+ *
+ * @param[in] args sasi::args_t contains name of sequence files.
+ *
+ * @return std::vector<size_t> gap frequency vector - position is length and
+ * value is count;
+ */
+
+std::vector<size_t> frequency(const sasi::args_t& args) {
+    // gap counts vector -  each position is the number of gaps with its length
+    // (e.g. value  at position 1 is number of gaps of size 1)
     std::vector<size_t> counts;
 
     // for each fasta file in input
     for(const auto& file : args.input) {
-        // read fasta file
         sasi::data_t data = sasi::fasta::read_fasta(file);
 
         // if capacity of vector is smaller than size of aln, resize
         if(counts.capacity() < data.len()) {
-            counts.resize(data.len());
+            counts.resize(data.len() + 1);
         }
 
-        // find gaps on each sequence
+        // for each sequence find next gap starting at 0
+        // if we reach the end, next sequence
+        // otherwhise count the length of the gap
         for(const std::string& seq : data.seqs) {
             size_t pos{seq.find(GAP, 0)};
             while(pos != std::string::npos) {
@@ -42,24 +51,99 @@ std::vector<size_t> count(const sasi::args_t& args) {
         }
     }
 
+    // remove 0 length gaps after longest gap (trim right side of vector)
+    auto last_gap = std::find_if(counts.rbegin(), counts.rend(),
+                                 [](size_t s) { return s > 0; });
+    auto last_pos = std::distance(last_gap, counts.rend());
+    counts.resize(last_pos);
+
     return counts;
 }
 
 /// @private
 // GCOVR_EXCL_START
-// TEST_CASE("gap count") {
-//     auto test = [](int num, char* files[]) {
+TEST_CASE("gap_frequency") {
+    sasi::args_t args;
+    auto test = [](const sasi::args_t& args,
+                   const std::vector<std::string>& seqs,
+                   const std::vector<size_t>& expected = {}) {  // NOLINT
+        // create input files
+        std::ofstream out;
+        REQUIRE(args.input.size() == seqs.size());
+        for(size_t i = 0; i < seqs.size(); ++i) {
+            out.open(args.input[i]);
+            REQUIRE(out);
+            out << seqs[i] << std::endl;
+            out.close();
+        }
 
-//     }
-// seq ending with gap
-// short then long seq to trigger `resize`
-// }
+        CHECK_EQ(sasi::gap::frequency(args), expected);
+        for(const auto& file : args.input) {  // NOLINT
+            REQUIRE(std::filesystem::remove(file));
+        }
+    };
+    SUBCASE("one file") {
+        args.input = {"test-freq-1.fa"};
+        std::vector<std::string> seqs = {">1\nAA--A---A----------AA"};
+        std::vector<size_t> expected = {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1};
+        test(args, seqs, expected);
+    }
+    SUBCASE("multiple file") {
+        args.input = {"test-freq-1.fa", "test-freq-2.fa", "test-freq-3.fa"};
+        std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- -AA",
+                                         ">2\nAA- -AC CCA --- TTT --G -AA",
+                                         ">3\nAA- -A- --A --- TTT --- -AA"};
+        std::vector<size_t> expected = {0, 1, 4, 4, 1, 0, 0, 0, 0, 0, 1};
+        test(args, seqs, expected);
+    }
+    SUBCASE("no gaps") {
+        args.input = {"test-freq-1.fa"};
+        std::vector<std::string> seqs = {">1\nAAA AAA"};
+        std::vector<size_t> expected = {};
+        test(args, seqs, expected);
+    }
+    SUBCASE("gap at beginning") {
+        args.input = {"test-freq-1.fa"};
+        std::vector<std::string> seqs = {">1\n--- --A --- --- --- -AA"};
+        std::vector<size_t> expected = {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+        test(args, seqs, expected);
+    }
+    SUBCASE("gap at end") {
+        args.input = {"test-freq-1.fa", "test-freq.2.fa"};
+        std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- ---",
+                                         ">2\nAA- -A- --A AAA AAA AAA AA-"};
+        std::vector<size_t> expected = {0, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+        test(args, seqs, expected);
+    }
+    SUBCASE("entire seq is gap") {
+        args.input = {"test-freq-1.fa"};
+        std::vector<std::string> seqs = {">1\n--- --- --- --- ---"};
+        std::vector<size_t> expected = {0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 1};
+        test(args, seqs, expected);
+    }
+    SUBCASE("trigger resize") {  // seq ending with gap short then long seq
+        args.input = {"test-freq-1.fa", "test-freq.2.fa"};
+        std::vector<std::string> seqs = {">1\nAA- -A-",
+                                         ">2\nAA- -A- --A AAA A-A AAA AA-"};
+        std::vector<size_t> expected = {0, 3, 2, 1};
+        test(args, seqs, expected);
+    }
+}
 // GCOVR_EXCL_STOP
+
+/**
+ * @brief Position of gaps in sequence.
+ *
+ * @details Relative position (percentage) of gaps in sequence.
+ * Each value [0,100] is the number of gaps at that position
+ * (e.g. value at position 0 is number of gaps at beginning of sequence).
+ *
+ * @returns std::vector<size_t> with number of gaps per position [0,100].
+ */
 
 std::vector<size_t> position(const sasi::args_t& args) {
     // gap position vector
-    //  each value [0,100] is the number of gaps at that position (e.g. value
-    //  at position 0 is number of gaps at beginning of sequence)
     std::vector<size_t> gaps(101, 0);
 
     for(const auto& file : args.input) {
@@ -91,7 +175,8 @@ std::vector<size_t> position(const sasi::args_t& args) {
 }
 
 /// @private
-TEST_CASE("position") {
+// GCOVR_EXCL_START
+TEST_CASE("gap_position") {
     SUBCASE("end with gap") {
         std::ofstream out;
         out.open("test-positions.fa");
@@ -141,7 +226,17 @@ TEST_CASE("position") {
         REQUIRE(std::filesystem::remove("test-positions.fa"));
     }
 }
+// GCOVR_EXCL_STOP
 
+/**
+ * @brief Count gaps that occur within codons (position not multiple of 3).
+ *
+ * @details Run `sasi::gap::frequency` and count how many gaps have length
+ * not multiple of 3.
+ *
+ * @return std::pair<size_t, size_t> Number of frameshifts and total number
+ * of gaps for comparison.
+ */
 std::pair<size_t, size_t> frameshift(const std::vector<size_t>& counts) {
     std::pair<size_t, size_t> total{0, 0};  // total_frameshifts, total_gaps
     for(size_t pos = 0; pos < counts.size(); ++pos) {
@@ -156,9 +251,42 @@ std::pair<size_t, size_t> frameshift(const std::vector<size_t>& counts) {
     return total;
 }
 
-std::vector<float> phase(const sasi::args_t& args) {
+/// @private
+// GCOVR_EXCL_START
+TEST_CASE("gap_frameshift") {
+    SUBCASE("no gaps") {
+        const std::vector<size_t> counts{};
+        CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(0, 0));
+    }
+    SUBCASE("one gap") {
+        const std::vector<size_t> counts{0, 0, 1};
+        CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(1, 1));
+    }
+    SUBCASE("no frameshifts") {
+        const std::vector<size_t> counts{0, 0, 0, 7, 0, 0, 3, 0, 0, 2};
+        CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(0, 12));
+    }
+    SUBCASE("only frameshifts") {
+        const std::vector<size_t> counts{0, 15, 0, 0, 0, 9, 0, 0, 4, 0, 0, 1};
+        CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(29, 29));
+    }
+    SUBCASE("mix case") {
+        const std::vector<size_t> counts{0, 30, 15, 18, 0, 8, 10,
+                                         3, 0,  4,  1,  0, 1};
+        CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(57, 90));
+    }
+}
+// GCOVR_EXCL_STOP
+
+/**
+ * @brief Number of gaps of each phase {0, 1, 2}.
+ *
+ * @return std::vector<float> Vector of size 3 with number of gaps
+ * of phase 0, 1, and 2.
+ */
+std::vector<size_t> phase(const sasi::args_t& args) {
     // phase counts vector
-    std::vector<float> phase = {0, 0, 0};
+    std::vector<size_t> phase = {0, 0, 0};
 
     // for each fasta file in input
     for(const auto& file : args.input) {
@@ -180,12 +308,70 @@ std::vector<float> phase(const sasi::args_t& args) {
         }
     }
 
-    auto total =
-        static_cast<float>(std::accumulate(phase.begin(), phase.end(), 0));
-    phase[0] /= total;
-    phase[1] /= total;
-    phase[2] /= total;
-
     return phase;
 }
+
+/// @private
+// GCOVR_EXCL_START
+TEST_CASE("gap_phase") {
+    sasi::args_t args;
+    auto test = [](const sasi::args_t& args,
+                   const std::vector<std::string>& seqs,
+                   const std::vector<size_t>& expected = {}) {  // NOLINT
+        // create input files
+        std::ofstream out;
+        REQUIRE(args.input.size() == seqs.size());
+        for(size_t i = 0; i < seqs.size(); ++i) {
+            out.open(args.input[i]);
+            REQUIRE(out);
+            out << seqs[i] << std::endl;
+            out.close();
+        }
+
+        CHECK_EQ(sasi::gap::phase(args), expected);
+        for(const auto& file : args.input) {  // NOLINT
+            REQUIRE(std::filesystem::remove(file));
+        }
+    };
+    SUBCASE("one file") {
+        args.input = {"test-phase-1.fa"};
+        std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- -AA"};
+        std::vector<size_t> expected = {1, 0, 2};
+        test(args, seqs, expected);
+    }
+    SUBCASE("multiple file") {
+        args.input = {"test-phase-1.fa", "test-freq-2.fa", "test-freq-3.fa"};
+        std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- -AA",
+                                         ">2\nAA- -AC CCA --- T-- --G -AA",
+                                         ">3\nAA- -A- --A --- TTT --- -AA"};
+        std::vector<size_t> expected = {5, 1, 5};
+        test(args, seqs, expected);
+    }
+    SUBCASE("no gaps") {
+        args.input = {"test-phase-1.fa"};
+        std::vector<std::string> seqs = {">1\nAAA AAA"};
+        std::vector<size_t> expected = {0, 0, 0};
+        test(args, seqs, expected);
+    }
+    SUBCASE("gap at beginning") {
+        args.input = {"test-phase-1.fa"};
+        std::vector<std::string> seqs = {">1\n--- --A --- --- --- -AA"};
+        std::vector<size_t> expected = {2, 0, 0};
+        test(args, seqs, expected);
+    }
+    SUBCASE("gap at end") {
+        args.input = {"test-phase-1.fa", "test-phase.2.fa"};
+        std::vector<std::string> seqs = {">1\nAA- -AA A-- --- AAA --- --A",
+                                         ">2\nAAA AA- -AA AAA --- AAA AA-"};
+        std::vector<size_t> expected = {2, 1, 3};
+        test(args, seqs, expected);
+    }
+    SUBCASE("entire seq is gap") {
+        args.input = {"test-phase-1.fa"};
+        std::vector<std::string> seqs = {">1\n--- --- --- --- ---"};
+        std::vector<size_t> expected = {1, 0, 0};
+        test(args, seqs, expected);
+    }
+}
+// GCOVR_EXCL_STOP
 }  // namespace sasi::gap

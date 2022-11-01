@@ -66,6 +66,8 @@ struct args_t {
     info_detail stop_inf{info_detail::TOTAL};
     bool discard_gaps{false};
     std::vector<std::string> input;
+    bool stop_keep_last{false};
+    std::string output{""};
 };
 
 }  // namespace sasi

@@ -11,9 +11,9 @@
 #include "utils.hpp"
 
 namespace sasi::gap {
-std::vector<size_t> count(const sasi::args_t& args);
+std::vector<size_t> frequency(const sasi::args_t& args);
 std::pair<size_t, size_t> frameshift(const std::vector<size_t>& counts);
-std::vector<float> phase(const sasi::args_t& args);
+std::vector<size_t> phase(const sasi::args_t& args);
 std::vector<size_t> position(const sasi::args_t& args);
 }  // namespace sasi::gap
 #endif

@@ -1,5 +1,11 @@
 read_fasta
-position
+gap_frequency
+gap_position
+gap_frameshift
+gap_phase
+output
+sequence_frameshift
+sequence_stop_codons
 sequence_ambiguous
 trim_whitespace
 extract_file_type

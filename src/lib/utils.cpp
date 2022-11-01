@@ -85,34 +85,63 @@ sasi::args_t set_cli_options(CLI::App& app) {
     args.seq = app.add_subcommand("sequence", "Sequence information");
     app.require_subcommand(1);
 
-    // Add input positional argument
-    args.seq->add_option("input", args.input, "Input file(s) (FASTA format)")
-        ->take_all()
-        ->check(CLI::ExistingFile);
-    args.gap->add_option("input", args.input, "Input file(s) (FASTA format)")
-        ->take_all()
-        ->check(CLI::ExistingFile);
-
-    // Gap subcommands - 1 required: frameshift, count, position, phase
-    args.gap->add_subcommand("frameshift",
-                             "Count gaps with length not multiple of 3");
-    args.gap->add_subcommand("count", "Count number of gaps");
-    args.gap->add_subcommand("position", "Position of gaps");
-    args.gap->add_subcommand("phase", "Distribution of gap phases");
+    // Gap subcommands - 1 required: frameshift, frequency, position, phase
+    auto* frm = args.gap->add_subcommand(
+        "frameshift", "Count gaps with length not multiple of 3");
+    auto* frq = args.gap->add_subcommand("frequency", "Gap frequency");
+    auto* pos = args.gap->add_subcommand("position", "Position of gaps");
+    auto* pha = args.gap->add_subcommand("phase", "Distribution of gap phases");
     args.gap->require_subcommand(1);
+
+    // Add input positional argument
+    frm->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
+    frq->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
+    pos->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
+    pha->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
 
     // Seq subcommands - 1 required: stop, frameshift, ambiguous
     auto* stop = args.seq->add_subcommand("stop", "Count early stop codons");
-    args.seq->add_subcommand("frameshift",
-                             "Count sequences with length not multiple of 3");
-    args.seq->add_subcommand("ambiguous", "Count ambiguous nucleotides");
+    auto* fram = args.seq->add_subcommand(
+        "frameshift", "Count sequences with length not multiple of 3");
+    auto* amb =
+        args.seq->add_subcommand("ambiguous", "Count ambiguous nucleotides");
     args.seq->require_subcommand(1);
+
+    // Add input positional argument
+    stop->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
+    fram->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
+    amb->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
 
     // Command & subcommand specific options & flags
     stop->add_option("-i,--information", args.stop_inf,
                      "Stop codons: total = 0, file = 1, sequence = 2");
     args.seq->add_flag("-g,--discard-gaps", args.discard_gaps,
                        "Remove gaps before analysis");
+    stop->add_flag("-k,--keep-last", args.stop_keep_last,
+                   "Count ending codons as early stop codons");
+
+    // Add output option to all subcommands
+    frm->add_option("-o,--output", args.output, "Output file");
+    frq->add_option("-o,--output", args.output, "Output file");
+    pos->add_option("-o,--output", args.output, "Output file");
+    pha->add_option("-o,--output", args.output, "Output file");
+    stop->add_option("-o,--output", args.output, "Output file");
+    fram->add_option("-o,--output", args.output, "Output file");
+    amb->add_option("-o,--output", args.output, "Output file");
 
     return args;
 }
