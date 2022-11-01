@@ -18,7 +18,10 @@ std::pair<size_t, size_t> frameshift(const sasi::args_t& args) {
     for(const auto& file : args.input) {
         sasi::data_t data = sasi::fasta::read_fasta(file);
 
-        for(const std::string& seq : data.seqs) {
+        for(std::string& seq : data.seqs) {
+            if(args.discard_gaps) {
+                seq.erase(std::remove(seq.begin(), seq.end(), '-'), seq.end());
+            }
             total++;
             if(seq.length() % 3 != 0) {
                 frm++;
@@ -75,6 +78,15 @@ TEST_CASE("sequence_frameshift") {
                                          ">2\nAA- -AC CCA --- T-- --G -A",
                                          ">3\nAA- -A- --A --- TTT --- -"};
         std::pair<size_t, size_t> expected{2, 3};
+        test(args, seqs, expected);
+    }
+    SUBCASE("multiple file - discard gaps") {
+        args.input = {"test-frm-1.fa", "test-frm-2.fa", "test-frm-3.fa"};
+        args.discard_gaps = true;
+        std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- -AA",
+                                         ">2\nAA- -AC CCA --- T-- --- -A",
+                                         ">3\nAA- -A- --A --- TTT --- -"};
+        std::pair<size_t, size_t> expected{1, 3};
         test(args, seqs, expected);
     }
 }
