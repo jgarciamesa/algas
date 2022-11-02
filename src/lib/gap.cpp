@@ -15,7 +15,7 @@ namespace sasi::gap {
  * value is count;
  */
 
-std::vector<size_t> frequency(const sasi::args_t& args) {
+std::vector<std::pair<size_t, size_t>> frequency(const sasi::args_t& args) {
     // gap counts vector -  each position is the number of gaps with its length
     // (e.g. value  at position 1 is number of gaps of size 1)
     std::vector<size_t> counts;
@@ -51,41 +51,45 @@ std::vector<size_t> frequency(const sasi::args_t& args) {
         }
     }
 
-    // remove 0 length gaps after longest gap (trim right side of vector)
-    auto last_gap = std::find_if(counts.rbegin(), counts.rend(),
-                                 [](size_t s) { return s > 0; });
-    auto last_pos = std::distance(last_gap, counts.rend());
-    counts.resize(last_pos);
+    // remove zero counts and create vector of pairs <length, count>
+    std::vector<std::pair<size_t, size_t>> freqs;
+    for(size_t i = 0; i < counts.size(); ++i) {
+        if(counts[i] > 0) {
+            freqs.emplace_back(i, counts[i]);
+        }
+    }
 
-    return counts;
+    return freqs;
 }
 
 /// @private
 // GCOVR_EXCL_START
 TEST_CASE("gap_frequency") {
     sasi::args_t args;
-    auto test = [](const sasi::args_t& args,
-                   const std::vector<std::string>& seqs,
-                   const std::vector<size_t>& expected = {}) {  // NOLINT
-        // create input files
-        std::ofstream out;
-        REQUIRE(args.input.size() == seqs.size());
-        for(size_t i = 0; i < seqs.size(); ++i) {
-            out.open(args.input[i]);
-            REQUIRE(out);
-            out << seqs[i] << std::endl;
-            out.close();
-        }
+    auto test =
+        [](const sasi::args_t& args, const std::vector<std::string>& seqs,
+           // NOLINTNEXTLINE
+           const std::vector<std::pair<size_t, size_t>>& expected = {}) {
+            // create input files
+            std::ofstream out;
+            REQUIRE(args.input.size() == seqs.size());
+            for(size_t i = 0; i < seqs.size(); ++i) {
+                out.open(args.input[i]);
+                REQUIRE(out);
+                out << seqs[i] << std::endl;
+                out.close();
+            }
 
-        CHECK_EQ(sasi::gap::frequency(args), expected);
-        for(const auto& file : args.input) {  // NOLINT
-            REQUIRE(std::filesystem::remove(file));
-        }
-    };
+            CHECK_EQ(sasi::gap::frequency(args), expected);
+            for(const auto& file : args.input) {  // NOLINT
+                REQUIRE(std::filesystem::remove(file));
+            }
+        };
     SUBCASE("one file") {
         args.input = {"test-freq-1.fa"};
-        std::vector<std::string> seqs = {">1\nAA--A---A----------AA"};
-        std::vector<size_t> expected = {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1};
+        std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- -AA"};
+        std::vector<std::pair<size_t, size_t>> expected = {
+            {2, 1}, {3, 1}, {10, 1}};
         test(args, seqs, expected);
     }
     SUBCASE("multiple file") {
@@ -93,40 +97,42 @@ TEST_CASE("gap_frequency") {
         std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- -AA",
                                          ">2\nAA- -AC CCA --- TTT --G -AA",
                                          ">3\nAA- -A- --A --- TTT --- -AA"};
-        std::vector<size_t> expected = {0, 1, 4, 4, 1, 0, 0, 0, 0, 0, 1};
+        std::vector<std::pair<size_t, size_t>> expected = {
+            {1, 1}, {2, 4}, {3, 4}, {4, 1}, {10, 1}};
         test(args, seqs, expected);
     }
     SUBCASE("no gaps") {
         args.input = {"test-freq-1.fa"};
         std::vector<std::string> seqs = {">1\nAAA AAA"};
-        std::vector<size_t> expected = {};
+        std::vector<std::pair<size_t, size_t>> expected = {};
         test(args, seqs, expected);
     }
     SUBCASE("gap at beginning") {
         args.input = {"test-freq-1.fa"};
         std::vector<std::string> seqs = {">1\n--- --A --- --- --- -AA"};
-        std::vector<size_t> expected = {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+        std::vector<std::pair<size_t, size_t>> expected = {{5, 1}, {10, 1}};
         test(args, seqs, expected);
     }
     SUBCASE("gap at end") {
         args.input = {"test-freq-1.fa", "test-freq.2.fa"};
         std::vector<std::string> seqs = {">1\nAA- -A- --A --- --- --- ---",
                                          ">2\nAA- -A- --A AAA AAA AAA AA-"};
-        std::vector<size_t> expected = {0, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+        std::vector<std::pair<size_t, size_t>> expected = {
+            {1, 1}, {2, 2}, {3, 2}, {12, 1}};
         test(args, seqs, expected);
     }
     SUBCASE("entire seq is gap") {
         args.input = {"test-freq-1.fa"};
         std::vector<std::string> seqs = {">1\n--- --- --- --- ---"};
-        std::vector<size_t> expected = {0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 1};
+        std::vector<std::pair<size_t, size_t>> expected = {{15, 1}};
         test(args, seqs, expected);
     }
     SUBCASE("trigger resize") {  // seq ending with gap short then long seq
         args.input = {"test-freq-1.fa", "test-freq.2.fa"};
         std::vector<std::string> seqs = {">1\nAA- -A-",
                                          ">2\nAA- -A- --A AAA A-A AAA AA-"};
-        std::vector<size_t> expected = {0, 3, 2, 1};
+        std::vector<std::pair<size_t, size_t>> expected = {
+            {1, 3}, {2, 2}, {3, 1}};
         test(args, seqs, expected);
     }
 }
@@ -237,14 +243,18 @@ TEST_CASE("gap_position") {
  * @return std::pair<size_t, size_t> Number of frameshifts and total number
  * of gaps for comparison.
  */
-std::pair<size_t, size_t> frameshift(const std::vector<size_t>& counts) {
+std::pair<size_t, size_t> frameshift(
+    const std::vector<std::pair<size_t, size_t>>& counts) {
     std::pair<size_t, size_t> total{0, 0};  // total_frameshifts, total_gaps
-    for(size_t pos = 0; pos < counts.size(); ++pos) {
-        if(counts[pos] > 0) {
-            total.second += counts[pos];
-            if(pos % 3 != 0) {
-                total.first += counts[pos];
-            }
+    if(any_of(counts.begin(), counts.end(), [](std::pair<size_t, size_t> pair) {
+           return pair.second <= 0;
+       })) {
+        throw std::runtime_error("Counts vector contains frequencies of zero");
+    }
+    for(const auto& pair : counts) {
+        total.second += pair.second;
+        if(pair.first % 3 != 0) {
+            total.first += pair.second;
         }
     }
 
@@ -255,25 +265,33 @@ std::pair<size_t, size_t> frameshift(const std::vector<size_t>& counts) {
 // GCOVR_EXCL_START
 TEST_CASE("gap_frameshift") {
     SUBCASE("no gaps") {
-        const std::vector<size_t> counts{};
+        const std::vector<std::pair<size_t, size_t>> counts{};
         CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(0, 0));
     }
     SUBCASE("one gap") {
-        const std::vector<size_t> counts{0, 0, 1};
+        const std::vector<std::pair<size_t, size_t>> counts{{1, 1}};
         CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(1, 1));
     }
     SUBCASE("no frameshifts") {
-        const std::vector<size_t> counts{0, 0, 0, 7, 0, 0, 3, 0, 0, 2};
+        const std::vector<std::pair<size_t, size_t>> counts{
+            {3, 7}, {6, 3}, {9, 2}};
         CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(0, 12));
     }
     SUBCASE("only frameshifts") {
-        const std::vector<size_t> counts{0, 15, 0, 0, 0, 9, 0, 0, 4, 0, 0, 1};
+        const std::vector<std::pair<size_t, size_t>> counts{
+            {1, 15}, {5, 9}, {8, 4}, {11, 1}};
         CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(29, 29));
     }
     SUBCASE("mix case") {
-        const std::vector<size_t> counts{0, 30, 15, 18, 0, 8, 10,
-                                         3, 0,  4,  1,  0, 1};
+        const std::vector<std::pair<size_t, size_t>> counts{
+            {1, 30}, {2, 15}, {3, 18}, {5, 8}, {6, 10},
+            {7, 3},  {9, 4},  {10, 1}, {12, 1}};
         CHECK_EQ(frameshift(counts), std::pair<size_t, size_t>(57, 90));
+    }
+    SUBCASE("zeros - fail") {
+        const std::vector<std::pair<size_t, size_t>> counts{
+            {1, 1}, {2, 0}, {3, 1}};
+        CHECK_THROWS_AS(frameshift(counts), std::runtime_error);
     }
 }
 // GCOVR_EXCL_STOP

@@ -6,7 +6,8 @@
 #include "structs.hpp"
 
 namespace sasi::gap::output {
-void frequency(const std::vector<size_t>& counts, std::ostream& out);
+void frequency(const std::vector<std::pair<size_t, size_t>>& counts,
+               std::ostream& out);
 void frameshift(const std::pair<size_t, size_t>& gaps, std::ostream& out);
 void phase(const std::vector<size_t>& phases, std::ostream& out);
 void position(const std::vector<size_t>& positions, std::ostream& out);

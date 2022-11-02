@@ -9,15 +9,16 @@ namespace sasi::gap::output {
 /**
  * @brief Write result from gap::frequency to file or stdout.
  */
-void frequency(const std::vector<size_t>& counts, std::ostream& out) {
+void frequency(const std::vector<std::pair<size_t, size_t>>& counts,
+               std::ostream& out) {
     // if no gaps, print 1 gap of length zero
     if(counts.empty()) {
         out << "Gap_length,count" << std::endl;
         out << 0 << "," << 0 << std::endl;
     } else {
         out << "Gap_length,count" << std::endl;
-        for(size_t i = 1; i < counts.size(); ++i) {
-            out << i << "," << counts[i] << std::endl;
+        for(const auto& pair : counts) {
+            out << pair.first << "," << pair.second << std::endl;
         }
     }
 }
@@ -101,9 +102,10 @@ TEST_CASE("output") {
         REQUIRE(std::filesystem::remove("test.txt"));
     };
     SUBCASE("gap frequency") {
-        std::vector<size_t> counts{0, 5, 4, 3, 2, 1};
+        std::vector<std::pair<size_t, size_t>> counts{
+            {1, 5}, {2, 4}, {3, 3}, {4, 2}, {6, 1}};
         std::vector<std::string> expected{
-            "Gap_length,count", "1,5", "2,4", "3,3", "4,2", "5,1"};
+            "Gap_length,count", "1,5", "2,4", "3,3", "4,2", "6,1"};
         std::ofstream outfile;
         outfile.open("test.txt");
         REQUIRE(outfile);
@@ -111,7 +113,7 @@ TEST_CASE("output") {
         test(expected);
     }
     SUBCASE("gap frequency - no counts") {
-        std::vector<size_t> counts{};
+        std::vector<std::pair<size_t, size_t>> counts{};
         std::vector<std::string> expected{"Gap_length,count", "0,0"};
         std::ofstream outfile;
         outfile.open("test.txt");
