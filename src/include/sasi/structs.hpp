@@ -68,6 +68,8 @@ struct args_t {
     std::vector<std::string> input;
     bool stop_keep_last{false};
     std::string output{""};
+    bool ignore_empty{false};
+    size_t k{3};
 };
 
 }  // namespace sasi

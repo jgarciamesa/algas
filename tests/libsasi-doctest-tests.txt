@@ -7,5 +7,6 @@ output
 sequence_frameshift
 sequence_stop_codons
 sequence_ambiguous
+subst
 trim_whitespace
 extract_file_type

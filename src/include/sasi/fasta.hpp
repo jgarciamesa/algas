@@ -12,7 +12,7 @@
 
 namespace sasi::fasta {
 
-sasi::data_t read_fasta(const std::string& f_path);
+sasi::data_t read_fasta(const std::string& f_path, bool ignore = false);
 bool write_fasta(sasi::data_t& fasta);
 
 }  // namespace sasi::fasta

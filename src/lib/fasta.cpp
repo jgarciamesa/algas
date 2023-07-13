@@ -7,7 +7,7 @@
 
 namespace sasi::fasta {
 
-sasi::data_t read_fasta(const std::string& f_path) {
+sasi::data_t read_fasta(const std::string& f_path, bool ignore) {
     sasi::data_t fasta(f_path);
 
     // set input pointer and file type
@@ -60,7 +60,7 @@ sasi::data_t read_fasta(const std::string& f_path) {
         fasta.seqs.push_back(content);  // Add last sequence if needed
     }
 
-    if(fasta.seqs.size() == 0) {
+    if(fasta.seqs.size() == 0 && !ignore) {
         throw std::invalid_argument("Input file " + f_path + " is empty");
     }
 

@@ -89,6 +89,11 @@ void stop_codons(const std::vector<std::string>& count, std::ostream& out) {
     }
 }
 
+void subst(const std::vector<std::size_t>& count, std::ostream& out) {
+    out << "phase0,phase1,phase2" << std::endl
+        << count[0] << ',' << count[1] << ',' << count[2] << std::endl;
+}
+
 TEST_CASE("output") {
     auto test = [](const std::vector<std::string>& expected) {
         std::ifstream in;

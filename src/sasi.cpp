@@ -52,6 +52,8 @@ int main(int argc, char* argv[]) {
             } else if(args.seq->got_subcommand("stop")) {
                 sasi::seq::output::stop_codons(sasi::seq::stop_codons(args),
                                                out);
+            } else if(args.seq->got_subcommand("subst")) {
+                sasi::seq::output::subst(sasi::seq::subst(args), out);
             }
             return EXIT_SUCCESS;
         }

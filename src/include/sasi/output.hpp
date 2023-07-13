@@ -17,5 +17,6 @@ namespace sasi::seq::output {
 void ambiguous(const size_t count, std::ostream& out);
 void frameshift(const std::pair<size_t, size_t> count, std::ostream& out);
 void stop_codons(const std::vector<std::string>& count, std::ostream& out);
+void subst(const std::vector<std::size_t>& count, std::ostream& out);
 }  // namespace sasi::seq::output
 #endif

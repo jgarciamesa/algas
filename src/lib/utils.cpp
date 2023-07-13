@@ -107,13 +107,15 @@ sasi::args_t set_cli_options(CLI::App& app) {
         ->take_all()
         ->check(CLI::ExistingFile);
 
-    // Seq subcommands - 1 required: stop, frameshift, ambiguous
+    // Seq subcommands - 1 required: stop, frameshift, ambiguous, subst_phase
     auto* stop = args.seq->add_subcommand("stop", "Count early stop codons");
     auto* fram = args.seq->add_subcommand(
         "frameshift", "Count sequences with length not multiple of 3");
     auto* amb =
         args.seq->add_subcommand("ambiguous", "Count ambiguous nucleotides");
     args.seq->require_subcommand(1);
+    auto* sub =
+        args.seq->add_subcommand("subst", "Number of substitution per phase");
 
     // Add input positional argument
     stop->add_option("input", args.input, "Input file(s) (FASTA format)")
@@ -125,14 +127,18 @@ sasi::args_t set_cli_options(CLI::App& app) {
     amb->add_option("input", args.input, "Input file(s) (FASTA format)")
         ->take_all()
         ->check(CLI::ExistingFile);
+    sub->add_option("input", args.input, "Input file(s) (FASTA format)")
+        ->take_all()
+        ->check(CLI::ExistingFile);
 
     // Command & subcommand specific options & flags
     stop->add_option("-i,--information", args.stop_inf,
                      "Stop codons: total = 0, file = 1, sequence = 2");
     args.seq->add_flag("-g,--discard-gaps", args.discard_gaps,
                        "Remove gaps before analysis");
-    stop->add_flag("-k,--keep-last", args.stop_keep_last,
+    stop->add_flag("-l,--keep-last", args.stop_keep_last,
                    "Count ending codons as early stop codons");
+    pha->add_option("-k,--gap-len", args.k, "Unit of gap length (default: 3)");
 
     // Add output option to all subcommands
     frm->add_option("-o,--output", args.output, "Output file");
@@ -142,6 +148,10 @@ sasi::args_t set_cli_options(CLI::App& app) {
     stop->add_option("-o,--output", args.output, "Output file");
     fram->add_option("-o,--output", args.output, "Output file");
     amb->add_option("-o,--output", args.output, "Output file");
+    sub->add_option("-o,--output", args.output, "Output file");
+
+    // Option to ignore empty files
+    app.add_flag("--ignore", args.ignore_empty, "Ignore empty files");
 
     return args;
 }

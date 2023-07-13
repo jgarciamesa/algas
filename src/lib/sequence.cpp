@@ -16,7 +16,11 @@ std::pair<size_t, size_t> frameshift(const sasi::args_t& args) {
     size_t total{0};
     // for each fasta file in input
     for(const auto& file : args.input) {
-        sasi::data_t data = sasi::fasta::read_fasta(file);
+        sasi::data_t data = sasi::fasta::read_fasta(file, args.ignore_empty);
+
+        if(data.seqs.size() == 0 && args.ignore_empty) {
+            continue;
+        }
 
         for(std::string& seq : data.seqs) {
             if(args.discard_gaps) {
@@ -110,7 +114,11 @@ std::vector<std::string> stop_codons(const sasi::args_t& args) {
 
     // for each fasta file in input
     for(const auto& file : args.input) {
-        sasi::data_t data = sasi::fasta::read_fasta(file);
+        sasi::data_t data = sasi::fasta::read_fasta(file, args.ignore_empty);
+
+        if(data.seqs.size() == 0 && args.ignore_empty) {
+            continue;
+        }
 
         // find early stop codons on each sequence
         for(size_t i = 0; i < data.seqs.size(); ++i) {
@@ -299,7 +307,7 @@ std::size_t ambiguous(const sasi::args_t& args) {
     const std::string amb{"ryswkmbdhvnRYSWKMBDHVN"};
     // for each fasta file in input
     for(const auto& file : args.input) {
-        sasi::data_t data = sasi::fasta::read_fasta(file);
+        sasi::data_t data = sasi::fasta::read_fasta(file, args.ignore_empty);
         // for sequence in file
         for(const std::string& seq : data.seqs) {
             n_amb += std::count_if(seq.begin(), seq.end(), [amb](auto s) {
@@ -357,6 +365,80 @@ TEST_CASE("sequence_ambiguous") {
         std::string file2{">1\nbaaandnnhwk\n>2\ncccccacacagt"};
         test({file1, file2}, {"test1.fasta", "test2.fasta"}, 17);
     }
+}
+// GCOVR_EXCL_STOP
+
+/**
+ * @brief Count number of substitutions by phase for pairwise alignments.
+ *
+ * @return std::size_t count.
+ */
+std::vector<std::size_t> subst(const sasi::args_t& args) {
+    std::vector<size_t> counts{0, 0, 0};
+    // for each fasta file in input
+    for(const auto& file : args.input) {
+        sasi::data_t data = sasi::fasta::read_fasta(file, args.ignore_empty);
+        if(data.seqs.size() != 2) {
+            throw std::invalid_argument("Pairwise alignments only.");
+        }
+        const std::string_view seq1 = data.seqs[0];
+        const std::string_view seq2 = data.seqs[1];
+        // for sequence in file
+        if(seq1.length() != seq2.length()) {
+            throw std::invalid_argument(
+                "Pairwise alignments must have equal length sequences.");
+        }
+        for(size_t i = 0; i < seq1.length(); ++i) {
+            if(seq1[i] != '-' && seq2[i] != '-') {
+                counts[i % 3]++;
+            }
+        }
+    }
+    return counts;
+}
+
+/// @private
+// GCOVR_EXCL_START
+TEST_CASE("subst") {
+    auto test = [](const std::vector<std::string>& files,
+                   const std::vector<std::string>& fnames,
+                   // NOLINTNEXTLINE(misc-unused-parameters)
+                   std::vector<std::size_t>
+                       expected) {  // NOLINT(clang-diagnostic-unusedvariable)
+        std::ofstream out;
+        REQUIRE(files.size() == fnames.size());
+        size_t size = files.size();
+
+        // write out files
+        for(size_t i = 0; i < size; ++i) {
+            out.open(fnames[i]);
+            REQUIRE(out);
+            out << files[i];
+            out.close();
+        }
+
+        sasi::args_t args;
+        args.input = fnames;
+
+        // NOLINTNEXTLINE(clang-diagnostic-unused-variable)
+        std::vector<std::size_t> result = sasi::seq::subst(args);
+        // NOLINTNEXTLINE(clang-dianostic-unused-variable
+        for(const auto& name : fnames) {
+            REQUIRE(std::filesystem::remove(name));
+        }
+
+        CHECK(result == expected);
+    };
+
+    std::string file{">seq1\nA---AAAAA\n>seq2\nCCCCCC---"};
+    test({file}, {"test.fasta"}, {1, 1, 1});
+    file = ">seq1\nAAA\n>seq2\nCCC";
+    test({file}, {"test.fasta"}, {1, 1, 1});
+    file = ">seq1\nAAAAAAAAA\n>seq2\nCCCCCCCCC";
+    test({file}, {"test.fasta"}, {3, 3, 3});
+    file = ">1\nAAA-AA\n>2\nCC-C--";
+    std::string file2 = ">1\nAAAAAA\n>2\nC--C--";
+    test({file, file2}, {"test1.fasta", "test2.fasta"}, {3, 1, 0});
 }
 // GCOVR_EXCL_STOP
 
