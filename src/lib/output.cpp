@@ -34,12 +34,12 @@ void frameshift(const std::pair<size_t, size_t>& gaps, std::ostream& out) {
 /**
  * @brief Write result from gap::phase to file or stdout.
  */
-void phase(const std::vector<size_t>& phases, std::ostream& out) {
+void phase(const std::vector<std::vector<size_t>>& phases, std::ostream& out) {
     // write counts to stdout
-    out << "phase,count" << std::endl;
-    out << "phase0," << phases[0] << std::endl;
-    out << "phase1," << phases[1] << std::endl;
-    out << "phase2," << phases[2] << std::endl;
+    out << "phase0,phase1,phase2" << std::endl;
+    for(auto file : phases) {
+        out << file[0] << "," << file[1] << "," << file[2] << std::endl;
+    }
 }
 
 /**
@@ -49,8 +49,8 @@ void position(const std::vector<size_t>& positions, std::ostream& out) {
     // if no gaps, print 1 gap of length zero
     auto any_gaps = std::find_if(begin(positions), end(positions),
                                  [](size_t s) { return s > 0; });
+    out << "position,count" << std::endl;
     if(any_gaps == std::end(positions)) {
-        out << "Gap_position,count" << std::endl;
         out << 0 << "," << 0 << std::endl;
     } else {
         // print all gaps
@@ -136,10 +136,20 @@ TEST_CASE("output") {
         sasi::gap::output::frameshift(gaps, outfile);
         test(expected);
     }
-    SUBCASE("gap phase") {
-        std::vector<size_t> gaps{30, 20, 10};
-        std::vector<std::string> expected{"phase,count", "phase0,30",
-                                          "phase1,20", "phase2,10"};
+    SUBCASE("gap phase - single file") {
+        std::vector<std::vector<size_t>> gaps{{30, 20, 10}};
+        std::vector<std::string> expected{{"phase0,phase1,phase2"},
+                                          {"30,20,10"}};
+        std::ofstream outfile;
+        outfile.open("test.txt");
+        REQUIRE(outfile);
+        sasi::gap::output::phase(gaps, outfile);
+        test(expected);
+    }
+    SUBCASE("gap phase - multiple files") {
+        std::vector<std::vector<size_t>> gaps{{30, 20, 10}, {50, 20, 30}};
+        std::vector<std::string> expected{
+            {"phase0,phase1,phase2"}, {"30,20,10"}, {"50,20,30"}};
         std::ofstream outfile;
         outfile.open("test.txt");
         REQUIRE(outfile);
@@ -153,20 +163,107 @@ TEST_CASE("output") {
             2, 2, 3, 5, 3, 3, 3, 5, 2, 1, 1, 3, 1, 1, 2, 1, 1, 3, 3, 1, 4,
             4, 2, 4, 1, 5, 2, 2, 2, 3, 1, 1, 5, 3, 4, 0, 0, 1, 1, 2, 6, 2,
             3, 3, 2, 1, 5, 1, 5, 4, 0, 0, 2, 2, 0, 4, 2, 0, 0};
-        std::vector<std::string> expected{
-            "1,2",  "2,1",  "3,1",  "4,2",  "5,3",  "6,1",  "7,2",  "8,3",
-            "9,1",  "10,4", "11,3", "12,4", "13,2", "14,2", "15,2", "16,2",
-            "17,2", "18,4", "19,1", "20,2", "21,3", "22,2", "23,3", "24,0",
-            "25,2", "26,2", "27,2", "28,3", "29,1", "30,1", "31,1", "32,3",
-            "33,2", "34,2", "35,0", "36,2", "37,2", "38,2", "39,2", "40,3",
-            "41,3", "42,2", "43,2", "44,3", "45,5", "46,3", "47,3", "48,3",
-            "49,5", "50,2", "51,1", "52,1", "53,3", "54,1", "55,1", "56,2",
-            "57,1", "58,1", "59,3", "60,3", "61,1", "62,4", "63,4", "64,2",
-            "65,4", "66,1", "67,5", "68,2", "69,2", "70,2", "71,3", "72,1",
-            "73,1", "74,5", "75,3", "76,4", "77,0", "78,0", "79,1", "80,1",
-            "81,2", "82,6", "83,2", "84,3", "85,3", "86,2", "87,1", "88,5",
-            "89,1", "90,5", "91,4", "92,0", "93,0", "94,2", "95,2", "96,0",
-            "97,4", "98,2", "99,0", "100,0"};
+        std::vector<std::string> expected{"position,count",
+                                          "1,2",
+                                          "2,1",
+                                          "3,1",
+                                          "4,2",
+                                          "5,3",
+                                          "6,1",
+                                          "7,2",
+                                          "8,3",
+                                          "9,1",
+                                          "10,4",
+                                          "11,3",
+                                          "12,4",
+                                          "13,2",
+                                          "14,2",
+                                          "15,2",
+                                          "16,2",
+                                          "17,2",
+                                          "18,4",
+                                          "19,1",
+                                          "20,2",
+                                          "21,3",
+                                          "22,2",
+                                          "23,3",
+                                          "24,0",
+                                          "25,2",
+                                          "26,2",
+                                          "27,2",
+                                          "28,3",
+                                          "29,1",
+                                          "30,1",
+                                          "31,1",
+                                          "32,3",
+                                          "33,2",
+                                          "34,2",
+                                          "35,0",
+                                          "36,2",
+                                          "37,2",
+                                          "38,2",
+                                          "39,2",
+                                          "40,3",
+                                          "41,3",
+                                          "42,2",
+                                          "43,2",
+                                          "44,3",
+                                          "45,5",
+                                          "46,3",
+                                          "47,3",
+                                          "48,3",
+                                          "49,5",
+                                          "50,2",
+                                          "51,1",
+                                          "52,1",
+                                          "53,3",
+                                          "54,1",
+                                          "55,1",
+                                          "56,2",
+                                          "57,1",
+                                          "58,1",
+                                          "59,3",
+                                          "60,3",
+                                          "61,1",
+                                          "62,4",
+                                          "63,4",
+                                          "64,2",
+                                          "65,4",
+                                          "66,1",
+                                          "67,5",
+                                          "68,2",
+                                          "69,2",
+                                          "70,2",
+                                          "71,3",
+                                          "72,1",
+                                          "73,1",
+                                          "74,5",
+                                          "75,3",
+                                          "76,4",
+                                          "77,0",
+                                          "78,0",
+                                          "79,1",
+                                          "80,1",
+                                          "81,2",
+                                          "82,6",
+                                          "83,2",
+                                          "84,3",
+                                          "85,3",
+                                          "86,2",
+                                          "87,1",
+                                          "88,5",
+                                          "89,1",
+                                          "90,5",
+                                          "91,4",
+                                          "92,0",
+                                          "93,0",
+                                          "94,2",
+                                          "95,2",
+                                          "96,0",
+                                          "97,4",
+                                          "98,2",
+                                          "99,0",
+                                          "100,0"};
         std::ofstream outfile;
         outfile.open("test.txt");
         REQUIRE(outfile);
@@ -175,7 +272,7 @@ TEST_CASE("output") {
     }
     SUBCASE("gap position - all zero") {
         std::vector<size_t> positions(101, 0);
-        std::vector<std::string> expected{"Gap_position,count", "0,0"};
+        std::vector<std::string> expected{"position,count", "0,0"};
         std::ofstream outfile;
         outfile.open("test.txt");
         REQUIRE(outfile);
